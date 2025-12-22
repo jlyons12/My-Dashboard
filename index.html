@@ -183,6 +183,78 @@
             font-size: 14px;
             font-weight: 500;
         }
+
+        .calendar-widget {
+            background: #0d2818;
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            background: #1b4332;
+            border: none;
+            color: #eee;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            background: #2d6a4f;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .calendar-day-header {
+            font-size: 12px;
+            color: #666;
+            padding: 8px 0;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .calendar-day.current-month {
+            color: #eee;
+        }
+
+        .calendar-day.today {
+            background: #95d5b2;
+            color: #0d2818;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +310,17 @@
                     <div class="link-name">Monday</div>
                 </a>
             </div>
+        </div>
+
+        <div class="calendar-widget">
+            <div class="calendar-header">
+                <div class="calendar-title" id="calendar-title">December 2024</div>
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)">&lt;</button>
+                    <button onclick="changeMonth(1)">&gt;</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
         </div>
 
     </div>
@@ -328,6 +411,86 @@
         // Fetch weather on load, refresh every 10 minutes
         fetchWeather();
         setInterval(fetchWeather, 600000);
+
+        // Calendar functionality
+        let currentDate = new Date();
+        let displayedMonth = currentDate.getMonth();
+        let displayedYear = currentDate.getFullYear();
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const title = document.getElementById('calendar-title');
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            title.textContent = `${monthNames[displayedMonth]} ${displayedYear}`;
+
+            // Clear grid
+            grid.innerHTML = '';
+
+            // Add day headers
+            dayNames.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Get first day of month and total days
+            const firstDay = new Date(displayedYear, displayedMonth, 1).getDay();
+            const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(displayedYear, displayedMonth, 0).getDate();
+
+            // Today's date for highlighting
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === displayedMonth && today.getFullYear() === displayedYear;
+
+            // Add days from previous month
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = daysInPrevMonth - i;
+                grid.appendChild(dayEl);
+            }
+
+            // Add days of current month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day current-month';
+                if (isCurrentMonth && day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+                dayEl.textContent = day;
+                grid.appendChild(dayEl);
+            }
+
+            // Add days from next month to fill grid
+            const totalCells = grid.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows * 7 days
+            for (let i = 1; i <= remainingCells && totalCells < 42; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = i;
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function changeMonth(delta) {
+            displayedMonth += delta;
+            if (displayedMonth > 11) {
+                displayedMonth = 0;
+                displayedYear++;
+            } else if (displayedMonth < 0) {
+                displayedMonth = 11;
+                displayedYear--;
+            }
+            renderCalendar();
+        }
+
+        // Initialize calendar
+        renderCalendar();
     </script>
 </body>
 </html>
